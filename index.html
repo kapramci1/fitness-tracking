@@ -1,0 +1,1538 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1a1a1a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Fitness Takip">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Fitness Takip</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0d0d0d;
+            color: #e0e0e0;
+            padding-bottom: 70px;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: #1a1a1a;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #333;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #4CAF50;
+        }
+
+        .content {
+            padding: 20px;
+            min-height: calc(100vh - 140px);
+        }
+
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1a1a1a;
+            border-top: 1px solid #333;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 200;
+        }
+
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            background: none;
+            color: #888;
+        }
+
+        .nav-item.active {
+            color: #4CAF50;
+        }
+
+        .nav-item svg {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 4px;
+        }
+
+        .nav-item span {
+            display: block;
+            font-size: 11px;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .day-card {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid #2a2a2a;
+        }
+
+        .day-card.special {
+            border: 2px solid #FF9800;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a1a0a 100%);
+        }
+
+        .day-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .day-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #4CAF50;
+        }
+
+        .day-card.special .day-name {
+            color: #FF9800;
+        }
+
+        .day-badge {
+            background: #2a2a2a;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            color: #888;
+        }
+
+        .exercise-group {
+            margin-bottom: 16px;
+        }
+
+        .exercise-title {
+            font-size: 14px;
+            color: #4CAF50;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .exercise-item {
+            background: #151515;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .exercise-item.completed {
+            background: #1a2a1a;
+            border: 1px solid #2a4a2a;
+        }
+
+        .exercise-item.completed .exercise-name {
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+
+        .exercise-checkbox {
+            width: 22px;
+            height: 22px;
+            accent-color: #4CAF50;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .exercise-info {
+            flex: 1;
+        }
+
+        .exercise-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .info-btn {
+            background: #2a2a2a;
+            color: #4CAF50;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .info-btn:active {
+            background: #3a3a3a;
+            transform: scale(0.95);
+        }
+
+        .tooltip-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.2s;
+        }
+
+        .tooltip-overlay.active {
+            display: flex;
+        }
+
+        .tooltip-content {
+            background: #1a1a1a;
+            border: 2px solid #4CAF50;
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .tooltip-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #333;
+        }
+
+        .tooltip-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #4CAF50;
+        }
+
+        .close-btn {
+            background: #2a2a2a;
+            color: #e0e0e0;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tooltip-section {
+            margin-bottom: 16px;
+        }
+
+        .tooltip-section h4 {
+            color: #FF9800;
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .tooltip-section ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .tooltip-section li {
+            color: #b0b0b0;
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 6px;
+            padding-left: 16px;
+            position: relative;
+        }
+
+        .tooltip-section li:before {
+            content: "•";
+            color: #4CAF50;
+            position: absolute;
+            left: 0;
+        }
+
+        .exercise-name {
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .exercise-details {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .video-link {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .diet-section {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .meal-time {
+            font-size: 16px;
+            font-weight: 600;
+            color: #4CAF50;
+            margin-bottom: 8px;
+        }
+
+        .meal-items {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #b0b0b0;
+        }
+
+        .diet-note {
+            background: #2a1a1a;
+            border: 1px solid #4a2a1a;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 16px;
+        }
+
+        .diet-note h3 {
+            color: #FF9800;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-label {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .input-field {
+            width: 100%;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 12px;
+            color: #e0e0e0;
+            font-size: 16px;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .btn-primary {
+            width: 100%;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .stats-card {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .stats-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #4CAF50;
+            margin: 10px 0;
+        }
+
+        .stats-label {
+            font-size: 14px;
+            color: #888;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        .progress-item {
+            text-align: center;
+        }
+
+        .progress-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #4CAF50;
+        }
+
+        .week-info {
+            background: #2a1a1a;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+            border: 1px solid #3a3a1a;
+        }
+
+        .week-info-text {
+            font-size: 13px;
+            color: #FF9800;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #4CAF50;
+        }
+
+        .day-selector {
+            background: #2a2a2a;
+            color: #888;
+            border: 1px solid #3a3a3a;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+
+        .day-selector.active {
+            background: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+
+        .day-selector:active {
+            transform: scale(0.95);
+        }
+
+        .day-content {
+            animation: fadeIn 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏋️ Fitness Takip</h1>
+    </div>
+
+    <div class="content">
+        <!-- Spor Programı -->
+        <div id="workout" class="page active">
+            <div class="week-info">
+                <div class="week-info-text">⚡ Her Pazartesi yeni hafta başlar</div>
+            </div>
+
+            <!-- Gün Seçici -->
+            <div style="display: flex; gap: 8px; overflow-x: auto; padding: 10px 0; margin-bottom: 16px; -webkit-overflow-scrolling: touch;">
+                <button class="day-selector active" onclick="selectDay('mon')">Pzt</button>
+                <button class="day-selector" onclick="selectDay('tue')">Sal</button>
+                <button class="day-selector" onclick="selectDay('wed')">Çar</button>
+                <button class="day-selector" onclick="selectDay('thu')">Per</button>
+                <button class="day-selector" onclick="selectDay('fri')">Cum</button>
+                <button class="day-selector" onclick="selectDay('sat')">Cmt</button>
+                <button class="day-selector" onclick="selectDay('sun')">Paz</button>
+            </div>
+
+            <!-- Pazartesi -->
+            <div class="day-card day-content" data-day="mon">
+                <div class="day-header">
+                    <div class="day-name">Pazartesi</div>
+                    <div class="day-badge">Kardiyo + Kol + Core</div>
+                </div>
+                
+                <div class="exercise-group">
+                    <div class="exercise-title">🏃 Kardiyo</div>
+                    <div class="exercise-item" data-exercise="mon-cardio">
+                        <input type="checkbox" class="exercise-checkbox" onchange="toggleExercise(this)">
+                        <div class="exercise-info">
+                            <div class="exercise-name">Koşu Bandı</div>
+                            <div class="exercise-details">30-35 dk | Hız: 6.0-6.5</div>
+                        </div>
+                        <div class="exercise-actions">
+                            <button class="info-btn" onclick="showTooltip('treadmill')">ℹ️</button>
+                            <a href="https://www.youtube.com/results?search_query=treadmill+running+beginners" target="_blank" class="video-link">📺</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="exercise-group">
+                    <div class="exercise-title">💪 Kol Antrenmanı</div>
+                    <div class="exercise-item" data-exercise="mon-biceps">
+                        <input type="checkbox" class="exercise-checkbox" onchange="toggleExercise(this)">
+                        <div class="exercise-info">
+                            <div class="exercise-name">Biceps Curl</div>
+                            <div class="exercise-details">3×12 (4 kg)</div>
+                        </div>
+                        <div class="exercise-actions">
+                            <button class="info-btn" onclick="showTooltip('biceps')">ℹ️</button>
+                            <a href="https://www.youtube.com/results?search_query=dumbbell+biceps+curl" target="_blank" class="video-link">📺</a>
+                        </div>
+                    </div>
+                    <div class="exercise-item" data-exercise="mon-triceps">
+                        <input type="checkbox" class="exercise-checkbox" onchange="toggleExercise(this)">
+                        <div class="exercise-info">
+                            <div class="exercise-name">Triceps Kickback</div>
+                            <div class="exercise-details">3×12</div>
+                        </div>
+                        <div class="exercise-actions">
+                            <button class="info-btn" onclick="showTooltip('triceps')">ℹ️</button>
+                            <a href="https://www.youtube.com/results?search_query=triceps+kickback" target="_blank" class="video-link">📺</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="exercise-group">
+                    <div class="exercise-title">🔥 Core (Hafif)</div>
+                    <div class="exercise-item" data-exercise="mon-plank">
+                        <input type="checkbox" class="exercise-checkbox" onchange="toggleExercise(this)">
+                        <div class="exercise-info">
+                            <div class="exercise-name">Plank</div>
+                            <div class="exercise-details">2×30 saniye</div>
+                        </div>
+                        <div class="exercise-actions">
+                            <button class="info-btn" onclick="showTooltip('plank')">ℹ️</button>
+                            <a href="https://www.youtube.com/results?search_query=plank+exercise" target="_blank" class="video-link">📺</a>
+                        </div>
+                    </div>
+                    <div class="exercise-item" data-exercise="mon-deadbug">
+                        <input type="checkbox" class="exercise-checkbox" onchange="toggleExercise(this)">
+                        <div class="exercise-info">
+                            <div class="exercise-name">Dead Bug</div>
+                            <div class="exercise-details">2×12</div>
+                        </div>
+                        <div class="exercise-actions">
+                            <button class="info-btn" onclick="showTooltip('deadbug')">ℹ️</button>
+                            <a href="https://www.youtube.com/results?search_query=dead+bug+exercise" target="_blank" class="video-link">📺</a>
+                        </div>
+                    </div>
+                </div>
+                <div style="background: #1a2a1a; padding: 10px; border-radius: 6px; margin-top: 8px; font-size: 12px; color: #4CAF50;">
+                    🔹 Core hafif başlıyor, Cuma artacak
+                </div>
+            </div>
+
+            <!-- Salı -->
+            <div class="day-card day-content" data-day="tue" style="display: none;">
+                <div class="day-header">
+                    <div class="day-name">Salı</div>
+                    <div class="day-badge">Kardiyo + Sırt</div>
+                </div>
+                
+                <div class="exercise-group">
+                    <div class="exercise-title">🏃 Kardiyo</div>
+                    <div class="exercise-item" data-exercise="tue-cardio">
+                        <input type="checkbox" class="exercise-checkbox" onchange="toggleExercise(this)">
+                        <div class="exercise-info">
+                            <div class="exercise-name">Koşu Bandı</div>
+                            <div class="exercise-details">30 dk | Hız: 6.0</div>
+                        </div>
+                        <div class="exercise-actions">
+                            <button class="info-btn" onclick="showTooltip('treadmill')">ℹ️</button>
+                            <a href="https://www.youtube.com/results?search_query=treadmill+walking+cardio" target="_blank" class="video-link">📺</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="exercise-group">
+                    <div class="exercise-title">💪 Sırt Antrenmanı</div>
+                    <div class="exercise-item" data-exercise="tue-latpull">
+                        <input type="checkbox" class="exercise-checkbox" onchange="toggleExercise(this)">
+                        <div class="exercise-info">
+                            <div class="exercise-name">Lat Pulldown</div>
+                            <div class="exercise-details">3×12 (Hafif)</div>
+                        </div>
+                        <div class="exercise-actions">
+                            <button class="info-btn" onclick="showTooltip('latpull')">ℹ️</button>
+                            <a href="https://www.youtube.com/results?search_query=lat+pulldown+form" target="_blank" class="video-link">📺</a>
+                        </div>
+                    </div>
+                    <div class="exercise-item" data-exercise="tue-row">
+                        <input type="checkbox" class="exercise-checkbox" onchange="toggleExercise(this)">
+                        <div class="exercise-info">
+                            <div class="exercise-name">Seated Row</div>
+                            <div class="exercise-details">3×12</div>
+                        </div>
+                        <div class="exercise-actions">
+                            <button class="info-btn" onclick="showTooltip('seatedrow')">ℹ️</button>
+                            <a href="https://www.youtube.com/results?search_query=seated+row+machine" target="_blank" class="video-link">📺</a>
+                        </div>
+                    </div>
+                </div>
+                <div style="background: #1a2a1a; padding: 10px; border-radius: 6px; margin-top: 8px; font-size: 12px; color: #4CAF50;">
+                    🔹 Sırt = metabolizma + postür
+                </div>
+            </div>
+
+            <!-- Çarşamba -->
+            <div class="day-card day-content" data-day="wed" style="display: none;">
+                <div class="day-header">
+                    <div class="day-name">Çarşamba</div>
+                    <div class="day-badge">Kardiyo + Bacak</div>
+                </div>
+                
+                <div class="exercise-group">
+                    <div class="exercise-title">🏃 Kardiyo</div>
+                    <div class="exercise-item" data-exercise="wed-cardio">
+                        <input type="checkbox" class="exercise-checkbox" onchange="toggleExercise(this)">
+                        <div class="exercise-info">
+                            <div class="exercise-name">Koşu Bandı</div>
+                            <div class="exercise-details">30 dk</div>
+                        </div>
+                        <div class="exercise-actions">
+                            <button class="info-btn" onclick="showTooltip('treadmill')">ℹ️</button>
+                            <a href="https://www.youtube.com/results?search_query=treadmill+cardio" target="_blank" class="video-link">📺</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="exercise-group">
+                    <div class="exercise-title">🦵 Bacak Antrenmanı</div>
+                    <div class="exercise-item" data-exercise="wed-squat">
+                        <input type="checkbox" class="exercise-checkbox" onchange="toggleExercise(this)">
+                        <div class="exercise-info">
+                            <div class="exercise-name">Squat (Bodyweight)</div>
+                            <div class="exercise-details">3×15</div>
+                        </div>
+                        <div class="exercise-actions">
+                            <button class="info-btn" onclick="showTooltip('squat')">ℹ️</button>
+                            <a href="https://www.youtube.com/results?search_query=bodyweight+squat+form" target="_blank" class="video-link">📺</a>
+                        </div>
+                    </div>
+                    <div class="exercise-item" data-exercise="wed-legpress">
+                        <input type="checkbox" class="exercise-checkbox" onchange="toggleExercise(this)">
+                        <div class="exercise-info">
+                            <div class="exercise-name">Leg Press</div>
+                            <div class="exercise-details">3×12 (Hafif)</div>
+                        </div>
+                        <div class="exercise-actions">
+                            <button class="info-btn" onclick="showTooltip('legpress')">ℹ️</button>
+                            <a href="https://www.youtube.com/results?search_query=leg+press+machine" target="_blank" class="video-link">📺</a>
+                        </div>
+                    </div>
+                    <div class="exercise-item" data-exercise="wed-legcurl">
+                        <input type="checkbox" class="exercise-checkbox" onchange="toggleExercise(this)">
+                        <div class="exercise-info">
+                            <div class="exercise-name">Leg Curl</div>
+                            <div class="exercise-details">3×12</div>
+                        </div>
+                        <div class="exercise-actions">
+                            <button class="info-btn" onclick="showTooltip('legcurl')">ℹ️</button>
+                            <a href="https://www.youtube.com/results?search_query=leg+curl+machine" target="_blank" class="video-link">📺</a>
+                        </div>
+                    </div>
+                    <div class="exercise-item" data-exercise="wed-calf">
+                        <input type="checkbox" class="exercise-checkbox" onchange="toggleExercise(this)">
+                        <div class="exercise-info">
+                            <div class="exercise-name">Calf Raise</div>
+                            <div class="exercise-details">3×15</div>
+                        </div>
+                        <div class="exercise-actions">
+                            <button class="info-btn" onclick="showTooltip('calf')">ℹ️</button>
+                            <a href="https://www.youtube.com/results?search_query=calf+raise" target="_blank" class="video-link">📺</a>
+                        </div>
+                    </div>
+                </div>
+                <div style="background: #2a1a1a; padding: 10px; border-radius: 6px; margin-top: 8px; font-size: 12px; color: #FF9800;">
+                    ⚠️ Bacak + core aynı gün yorar, core yok
+                </div>
+            </div>
+
+            <!-- Perşembe -->
+            <div class="day-card day-content" data-day="thu" style="display: none;">
+                <div class="day-header">
+                    <div class="day-name">Perşembe</div>
+                    <div class="day-badge">Aktif Dinlenme</div>
+                </div>
+                
+                <div class="rest-day-note">
+                    <div style="font-size: 32px; margin-bottom: 8px;">😌</div>
+                    <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">Dinlenme Günü</div>
+                    <div style="font-size: 13px; color: #888;">Hafif yürüyüş ve esneme yapabilirsiniz</div>
+                </div>
+            </div>
+
+            <!-- Cuma -->
+            <div class="day-card day-content" data-day="fri" style="display: none;">
+                <div class="day-header">
+                    <div class="day-name">Cuma</div>
+                    <div class="day-badge">Kardiyo + Göğüs + Kol + Core</div>
+                </div>
+                
+                <div class="exercise-group">
+                    <div class="exercise-title">🏃 Kardiyo</div>
+                    <div class="exercise-item" data-exercise="fri-cardio">
+                        <input type="checkbox" class="exercise-checkbox" onchange="toggleExercise(this)">
+                        <div class="exercise-info">
+                            <div class="exercise-name">Koşu Bandı</div>
+                            <div class="exercise-details">30 dk | Hız: 6.0-6.5</div>
+                        </div>
+                        <div class="exercise-actions">
+                            <button class="info-btn" onclick="showTooltip('treadmill')">ℹ️</button>
+                            <a href="https://www.youtube.com/results?search_query=treadmill+running+beginners" target="_blank" class="video-link">📺</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="exercise-group">
+                    <div class="exercise-title">💪 Göğüs Antrenmanı</div>
+                    <div class="exercise-item" data-exercise="fri-chestpress">
+                        <input type="checkbox" class="exercise-checkbox" onchange="toggleExercise(this)">
+                        <div class="exercise-info">
+                            <div class="exercise-name">Chest Press</div>
+                            <div class="exercise-details">3×12 (Hafif)</div>
+                        </div>
+                        <div class="exercise-actions">
+                            <button class="info-btn" onclick="showTooltip('chestpress')">ℹ️</button>
+                            <a href="https://www.youtube.com/results?search_query=chest+press+machine" target="_blank" class="video-link">📺</a>
+                        </div>
+                    </div>
+                    <div class="exercise-item" data-exercise="fri-pushup">
+                        <input type="checkbox" class="exercise-checkbox" onchange="toggleExercise(this)">
+                        <div class="exercise-info">
+                            <div class="exercise-name">Push-up (diz üstü ok)</div>
+                            <div class="exercise-details">2×8</div>
+                        </div>
+                        <div class="exercise-actions">
+                            <button class="info-btn" onclick="showTooltip('pushup')">ℹ️</button>
+                            <a href="https://www.youtube.com/results?search_query=knee+push+up" target="_blank" class="video-link">📺</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="exercise-group">
+                    <div class="exercise-title">💪 Kol (Kısa)</div>
+                    <div class="exercise-item" data-exercise="fri-biceps">
+                        <input type="checkbox" class="exercise-checkbox" onchange="toggleExercise(this)">
+                        <div class="exercise-info">
+                            <div class="exercise-name">Biceps Curl</div>
+                            <div class="exercise-details">2×12</div>
+                        </div>
+                        <div class="exercise-actions">
+                            <button class="info-btn" onclick="showTooltip('biceps')">ℹ️</button>
+                            <a href="https://www.youtube.com/results?search_query=dumbbell+biceps+curl" target="_blank" class="video-link">📺</a>
+                        </div>
+                    </div>
+                    <div class="exercise-item" data-exercise="fri-triceps">
+                        <input type="checkbox" class="exercise-checkbox" onchange="toggleExercise(this)">
+                        <div class="exercise-info">
+                            <div class="exercise-name">Triceps Kickback</div>
+                            <div class="exercise-details">2×12</div>
+                        </div>
+                        <div class="exercise-actions">
+                            <button class="info-btn" onclick="showTooltip('triceps')">ℹ️</button>
+                            <a href="https://www.youtube.com/results?search_query=triceps+kickback" target="_blank" class="video-link">📺</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="exercise-group">
+                    <div class="exercise-title">🔥 Core</div>
+                    <div class="exercise-item" data-exercise="fri-plank">
+                        <input type="checkbox" class="exercise-checkbox" onchange="toggleExercise(this)">
+                        <div class="exercise-info">
+                            <div class="exercise-name">Plank</div>
+                            <div class="exercise-details">3×30 saniye</div>
+                        </div>
+                        <div class="exercise-actions">
+                            <button class="info-btn" onclick="showTooltip('plank')">ℹ️</button>
+                            <a href="https://www.youtube.com/results?search_query=plank+exercise" target="_blank" class="video-link">📺</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cumartesi - Özel Gün -->
+            <div class="day-card special day-content" data-day="sat" style="display: none;">
+                <div class="day-header">
+                    <div class="day-name">Cumartesi</div>
+                    <div class="day-badge" style="background: #FF9800; color: white;">🎾 Squash Günü</div>
+                </div>
+                
+                <div class="exercise-group">
+                    <div class="exercise-title" style="color: #FF9800;">🏸 Squash</div>
+                    <div class="exercise-item" style="background: #2a1a0a;" data-exercise="sat-squash">
+                        <input type="checkbox" class="exercise-checkbox" onchange="toggleExercise(this)">
+                        <div class="exercise-info">
+                            <div class="exercise-name" style="color: #FF9800; font-weight: 600;">Squash Maçı</div>
+                            <div class="exercise-details">40-45 dk | Sadece Squash</div>
+                        </div>
+                        <div class="exercise-actions">
+                            <button class="info-btn" onclick="showTooltip('squash')" style="background: #3a2a1a; color: #FF9800;">ℹ️</button>
+                            <a href="https://www.youtube.com/results?search_query=squash+tips+beginners" target="_blank" class="video-link" style="background: #FF9800;">📺</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: #3a2a1a; padding: 12px; border-radius: 8px; margin-top: 12px; text-align: center;">
+                    <div style="font-size: 13px; color: #FFB74D;">⚠️ Bu gün ek kardiyo veya ağırlık antrenmanı yapılmaz</div>
+                </div>
+            </div>
+
+            <!-- Pazar -->
+            <div class="day-card day-content" data-day="sun" style="display: none;">
+                <div class="day-header">
+                    <div class="day-name">Pazar</div>
+                    <div class="day-badge">Aktif Gün</div>
+                </div>
+                
+                <div class="exercise-group">
+                    <div class="exercise-title">🚶 Aktif Dinlenme</div>
+                    <div class="exercise-item" data-exercise="sun-walk">
+                        <input type="checkbox" class="exercise-checkbox" onchange="toggleExercise(this)">
+                        <div class="exercise-info">
+                            <div class="exercise-name">Uzun Yürüyüş</div>
+                            <div class="exercise-details">45-60 dk</div>
+                        </div>
+                        <div class="exercise-actions">
+                            <button class="info-btn" onclick="showTooltip('treadmill')">ℹ️</button>
+                            <a href="https://www.youtube.com/results?search_query=walking+benefits" target="_blank" class="video-link">📺</a>
+                        </div>
+                    </div>
+                    <div class="exercise-item" data-exercise="sun-stretch">
+                        <input type="checkbox" class="exercise-checkbox" onchange="toggleExercise(this)">
+                        <div class="exercise-info">
+                            <div class="exercise-name">Hafif Esneme</div>
+                            <div class="exercise-details">Opsiyonel</div>
+                        </div>
+                        <div class="exercise-actions">
+                            <button class="info-btn" onclick="showTooltip('stretch')">ℹ️</button>
+                            <a href="https://www.youtube.com/results?search_query=stretching+routine" target="_blank" class="video-link">📺</a>
+                        </div>
+                    </div>
+                    <div class="exercise-item" data-exercise="sun-core">
+                        <input type="checkbox" class="exercise-checkbox" onchange="toggleExercise(this)">
+                        <div class="exercise-info">
+                            <div class="exercise-name">Hafif Core</div>
+                            <div class="exercise-details">İsteğe Bağlı</div>
+                        </div>
+                        <div class="exercise-actions">
+                            <button class="info-btn" onclick="showTooltip('plank')">ℹ️</button>
+                            <a href="https://www.youtube.com/results?search_query=core+exercises" target="_blank" class="video-link">📺</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Diyet -->
+        <div id="diet" class="page">
+            <div class="diet-section">
+                <div class="meal-time">🌅 Sabah (08:00-09:00)</div>
+                <div class="meal-items">
+                    • Kefir<br>
+                    • Chia tohumu veya keten tohumu
+                </div>
+            </div>
+
+            <div class="diet-section">
+                <div class="meal-time">☕ Kahvaltı (11:00-12:00)</div>
+                <div class="meal-items">
+                    • Yumurta veya yoğurt<br>
+                    • Yulaf<br>
+                    • Yeşillik (salata, roka vb.)
+                </div>
+            </div>
+
+            <div class="diet-section">
+                <div class="meal-time">🍎 Ara Öğün</div>
+                <div class="meal-items">
+                    • Yeşil çay<br>
+                    • Çiğ badem (10-15 adet)<br>
+                    • veya Mevsim meyvesi
+                </div>
+            </div>
+
+            <div class="diet-section">
+                <div class="meal-time">🍽️ Akşam Yemeği</div>
+                <div class="meal-items">
+                    • Tavuk veya balık (ızgara/haşlama)<br>
+                    • Bol sebze<br>
+                    • Az miktarda kompleks karbonhidrat (bulgur, esmer pirinç)
+                </div>
+            </div>
+
+            <div class="diet-note">
+                <h3>⚠️ Önemli Notlar</h3>
+                <div class="meal-items">
+                    • Kolesterol ve ürik asit dostu beslenme<br>
+                    • Sakatat tüketilmez<br>
+                    • Kırmızı et haftada maksimum 1 kez<br>
+                    • Alkol tüketilmez<br>
+                    • Bol su içilmeli (günde 2-3 litre)
+                </div>
+            </div>
+        </div>
+
+        <!-- Kilo Takibi -->
+        <div id="weight" class="page">
+            <div class="week-info">
+                <div class="week-info-text">📅 Haftalık takip - Her Pazartesi sıfırlanır</div>
+            </div>
+
+            <!-- İlk Kurulum -->
+            <div id="setupSection">
+                <div class="stats-card">
+                    <div class="stats-label">İlk Kurulum</div>
+                    <p style="font-size: 14px; color: #888; margin: 10px 0;">Boy ve hedef kilonuzu girin</p>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Boy (cm)</label>
+                    <input type="number" step="1" class="input-field" id="heightInput" placeholder="Örn: 175">
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Mevcut Kilonuz (kg)</label>
+                    <input type="number" step="0.1" class="input-field" id="initialWeightInput" placeholder="Örn: 85.5">
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Hedef Kilonuz (kg)</label>
+                    <input type="number" step="0.1" class="input-field" id="initialTargetInput" placeholder="Örn: 75.0">
+                </div>
+
+                <button class="btn-primary" onclick="setupWeight()">🎯 Başlat</button>
+            </div>
+
+            <!-- Ana Panel -->
+            <div id="trackingSection" style="display: none;">
+                <div class="stats-card">
+                    <div class="stats-label">Mevcut Kilo</div>
+                    <div class="stats-value" id="currentWeight">--</div>
+                    <div class="stats-label">kg</div>
+                </div>
+
+                <div class="stats-card">
+                    <div class="stats-label">Hedef Kilo</div>
+                    <div class="stats-value" id="targetWeight">--</div>
+                    <div class="stats-label">kg</div>
+                </div>
+
+                <div class="stats-card">
+                    <div class="stats-label">Vücut Kitle İndeksi (BMI)</div>
+                    <div class="stats-value" id="bmiValue">--</div>
+                    <div class="stats-label" id="bmiCategory">--</div>
+                </div>
+
+                <div class="stats-card" id="progressCard">
+                    <div class="progress-info">
+                        <div class="progress-item">
+                            <div class="stats-label">Hedefe Kalan</div>
+                            <div class="progress-value" id="remaining">--</div>
+                            <div class="stats-label" style="font-size: 12px;">kg</div>
+                        </div>
+                        <div class="progress-item">
+                            <div class="stats-label">Bu Hafta</div>
+                            <div class="progress-value" id="weeklyChange">--</div>
+                            <div class="stats-label" style="font-size: 12px;">kg</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Güncel Kilonuz (kg)</label>
+                    <input type="number" step="0.1" class="input-field" id="currentInput" placeholder="Örn: 84.0">
+                </div>
+
+                <button class="btn-primary" onclick="updateWeight()">💾 Güncelle</button>
+                
+                <button class="btn-primary" onclick="resetWeight()" style="background: #d32f2f; margin-top: 10px;">🔄 Sıfırla ve Yeniden Başlat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tooltip Overlay -->
+    <div class="tooltip-overlay" id="tooltipOverlay" onclick="closeTooltip(event)">
+        <div class="tooltip-content" id="tooltipContent" onclick="event.stopPropagation()">
+            <div class="tooltip-header">
+                <div class="tooltip-title" id="tooltipTitle"></div>
+                <button class="close-btn" onclick="closeTooltip()">✕</button>
+            </div>
+            <div id="tooltipBody"></div>
+        </div>
+    </div>
+
+    <nav class="nav-bar">
+        <button class="nav-item active" onclick="showPage('workout')">
+            <svg fill="currentColor" viewBox="0 0 24 24">
+                <path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22l1.43-1.43L16.29 22l2.14-2.14 1.43 1.43 1.43-1.43-1.43-1.43L22 16.29z"/>
+            </svg>
+            <span>Spor</span>
+        </button>
+        <button class="nav-item" onclick="showPage('diet')">
+            <svg fill="currentColor" viewBox="0 0 24 24">
+                <path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/>
+            </svg>
+            <span>Diyet</span>
+        </button>
+        <button class="nav-item" onclick="showPage('weight')">
+            <svg fill="currentColor" viewBox="0 0 24 24">
+                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+            </svg>
+            <span>Durum</span>
+        </button>
+    </nav>
+
+    <script>
+        const exerciseInfo = {
+            treadmill: {
+                title: "🏃‍♂️ Koşu Bandında Doğru Yürüyüş",
+                how: [
+                    "Koşu bandına dik durarak çık",
+                    "Omuzlar gevşek, göğüs açık olsun",
+                    "Kollarını doğal şekilde sallayarak yürü",
+                    "Topuk → taban → parmak ucu sırasıyla bas",
+                    "Adım uzunluğunu zorlamadan, ritmik tut"
+                ],
+                caution: [
+                    "Tutacaklara yaslanma",
+                    "Öne eğilme",
+                    "Adımı gereğinden fazla uzatma"
+                ]
+            },
+            biceps: {
+                title: "💪 Biceps Curl (Dumbbell)",
+                how: [
+                    "Ayakta dik dur, dambıllar iki elde",
+                    "Dirsekler gövdeye yakın olsun",
+                    "Nefes vererek dambılı yukarı kaldır",
+                    "Üstte 1 saniye sık",
+                    "Kontrollü şekilde indir"
+                ],
+                caution: [
+                    "Belden savurma yapma",
+                    "Dirsekleri öne kaçırma",
+                    "Ağırlığı hızla indirme"
+                ]
+            },
+            triceps: {
+                title: "💪 Triceps Kickback",
+                how: [
+                    "Dizleri hafif kır, gövdeyi öne eğ",
+                    "Dirsekleri vücuda yakın tut",
+                    "Kolu geriye doğru düzleştir",
+                    "Triceps kasını sık",
+                    "Kontrollü şekilde başlangıca dön"
+                ],
+                caution: [
+                    "Dirseği oynatma",
+                    "Ağırlığı savurma"
+                ]
+            },
+            plank: {
+                title: "🔥 Plank (Core Stability)",
+                how: [
+                    "Dirsekler omuz hizasında, ön kollar yerde",
+                    "Vücut düz bir çizgi oluştursun (baş-kalça-ayak)",
+                    "Karın kaslarını içeri çek",
+                    "Kalçayı aşağı sarkıtma veya yukarı kaldırma",
+                    "Nefes almaya devam et"
+                ],
+                caution: [
+                    "Bel çökmemeli",
+                    "Omuzlar gergin olmamalı",
+                    "Başı aşağı sarkıtma"
+                ]
+            },
+            deadbug: {
+                title: "🔥 Dead Bug (Core Control)",
+                how: [
+                    "Sırt üstü yat, kollar yukarı dik, dizler 90° bükümlü",
+                    "Beli yere bastır (boşluk olmamalı)",
+                    "Bir kol ve karşı bacağı yavaşça uzat",
+                    "Beli yerden kaldırmadan geri getir",
+                    "Diğer taraf ile tekrarla"
+                ],
+                caution: [
+                    "Beli yerden kaldırma",
+                    "Hareketi hızlandırma",
+                    "Nefes tutma"
+                ]
+            },
+            latpull: {
+                title: "💪 Lat Pulldown (Sırt Genişliği)",
+                how: [
+                    "Bara omuzdan biraz geniş tut",
+                    "Göğsü öne doğru aç",
+                    "Barı göğse doğru çek (dirsekler aşağı)",
+                    "Omuz kanatlarını sık",
+                    "Kontrollü şekilde yukarı bırak"
+                ],
+                caution: [
+                    "Sırtı kamburlaştırma",
+                    "Barı çeneye değil göğse çek",
+                    "Ağırlığı sallamadan kontrollü çalış"
+                ]
+            },
+            seatedrow: {
+                title: "💪 Seated Row (Sırt Kalınlığı)",
+                how: [
+                    "Göğsü dik tut, omuzlar geriye",
+                    "Tutamağı karına doğru çek",
+                    "Dirsekler vücuda yakın",
+                    "Sırt kaslarını sık",
+                    "Yavaşça geriye bırak"
+                ],
+                caution: [
+                    "Belden hareket almama",
+                    "Omuzları öne kaçırma",
+                    "Hareketi sallamama"
+                ]
+            },
+            squat: {
+                title: "🦵 Squat (Vücut Ağırlığı)",
+                how: [
+                    "Ayaklar omuz genişliğinde açık",
+                    "Kalçayı geriye doğru iterek çömel",
+                    "Dizler ayak ucunu geçmesin",
+                    "Topuklar yerde kalsın",
+                    "Yukarı kalkarken kalçayı sık"
+                ],
+                caution: [
+                    "Dizleri içeri kapatma",
+                    "Topukları kaldırma",
+                    "Sırtı kamburlaştırma"
+                ]
+            },
+            legpress: {
+                title: "🦵 Leg Press (Makine)",
+                how: [
+                    "Sırtını tamamen koltuğa yasla",
+                    "Ayaklar platformun ortasında olsun",
+                    "Dizleri kilitlemeden it",
+                    "Kontrollü şekilde geri dön"
+                ],
+                caution: [
+                    "Dizleri tam kilitleme",
+                    "Çok ağır ağırlık kullanma",
+                    "Belini koltuktan kaldırma"
+                ]
+            },
+            legcurl: {
+                title: "🦵 Leg Curl",
+                how: [
+                    "Makineye uygun pozisyonda uzan",
+                    "Topukları kalçaya doğru çek",
+                    "Arka bacak kasını sık",
+                    "Yavaşça geri bırak"
+                ],
+                caution: [
+                    "Hareketi hızlandırma",
+                    "Kalçayı yerden kaldırma"
+                ]
+            },
+            calf: {
+                title: "🦵 Calf Raise",
+                how: [
+                    "Ayaklar omuz genişliğinde",
+                    "Topuklardan yukarı kalk",
+                    "Baldır kasını sık",
+                    "Yavaşça aşağı in"
+                ],
+                caution: [
+                    "Zıplama yapma",
+                    "Yarım hareketten kaçın"
+                ]
+            },
+            chestpress: {
+                title: "💪 Chest Press (Göğüs)",
+                how: [
+                    "Sırtı bankta, ayaklar yerde",
+                    "Tutamakları göğüs hizasında tut",
+                    "Öne doğru it (tam kilitlemeden)",
+                    "Göğüs kaslarını sık",
+                    "Kontrollü şekilde geri çek"
+                ],
+                caution: [
+                    "Omuzları kaldırma",
+                    "Dirsekleri kilitleme",
+                    "Sırtı banktan kaldırma"
+                ]
+            },
+            pushup: {
+                title: "💪 Push-up (Diz Üstü)",
+                how: [
+                    "Dizler yerde, eller omuz genişliğinde",
+                    "Vücut dik bir çizgi (baş-kalça-diz)",
+                    "Göğsü yere yaklaştır",
+                    "Yukarı iterken göğüs kaslarını sık",
+                    "Kontrollü hareket et"
+                ],
+                caution: [
+                    "Bel çökmemeli",
+                    "Kalça aşağı sarkıtma",
+                    "Başı öne bırakma"
+                ]
+            },
+            squash: {
+                title: "🏸 Squash (Cumartesi Özel)",
+                how: [
+                    "Maça hafif tempo ile başla",
+                    "Ani sprintlerde kontrollü ol",
+                    "Dizleri hafif bükülü tut",
+                    "Set aralarında nefesini toparla",
+                    "Maç sonrası mutlaka esne"
+                ],
+                caution: [
+                    "Soğuk vücutla hızlı başlama",
+                    "Maç sonrası esneme atla",
+                    "Aşırı zorlanma"
+                ]
+            },
+            stretch: {
+                title: "🧘‍♂️ Esneme (Antrenman Sonrası)",
+                how: [
+                    "Her kas grubu için 15–20 saniye tut",
+                    "Zorlamadan, nefese odaklan",
+                    "Kasları gevşet",
+                    "Statik esneme yap (zıplama yok)"
+                ],
+                caution: [
+                    "Zıplamalı esneme yapma",
+                    "Acı hissedince zorlamaya devam etme",
+                    "Nefes tutma"
+                ]
+            }
+        };
+
+        function showTooltip(type) {
+            const info = exerciseInfo[type];
+            if (!info) return;
+
+            document.getElementById('tooltipTitle').textContent = info.title;
+            
+            let html = '<div class="tooltip-section"><h4>Nasıl Yapılır:</h4><ul>';
+            info.how.forEach(item => {
+                html += `<li>${item}</li>`;
+            });
+            html += '</ul></div>';
+            
+            html += '<div class="tooltip-section"><h4>⚠️ Dikkat Edilecekler:</h4><ul>';
+            info.caution.forEach(item => {
+                html += `<li>${item}</li>`;
+            });
+            html += '</ul></div>';
+            
+            document.getElementById('tooltipBody').innerHTML = html;
+            document.getElementById('tooltipOverlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeTooltip(event) {
+            if (!event || event.target === document.getElementById('tooltipOverlay')) {
+                document.getElementById('tooltipOverlay').classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+
+        const data = {
+            currentWeight: null,
+            targetWeight: null,
+            height: null,
+            lastWeight: null,
+            lastWeek: null,
+            exercises: {}
+        };
+
+        function selectDay(day) {
+            document.querySelectorAll('.day-selector').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.day-content').forEach(content => {
+                content.classList.remove('active');
+                content.style.display = 'none';
+            });
+            
+            event.target.classList.add('active');
+            const selectedDay = document.querySelector(`.day-content[data-day="${day}"]`);
+            if (selectedDay) {
+                selectedDay.classList.add('active');
+                selectedDay.style.display = 'block';
+            }
+        }
+
+        function setupWeight() {
+            const height = parseFloat(document.getElementById('heightInput').value);
+            const current = parseFloat(document.getElementById('initialWeightInput').value);
+            const target = parseFloat(document.getElementById('initialTargetInput').value);
+
+            if (!height || !current || !target) {
+                alert('Lütfen tüm alanları doldurun');
+                return;
+            }
+
+            if (height <= 0 || current <= 0 || target <= 0) {
+                alert('Lütfen geçerli değerler girin');
+                return;
+            }
+
+            data.height = height;
+            data.currentWeight = current;
+            data.targetWeight = target;
+            data.lastWeight = current;
+            data.lastWeek = getWeekNumber();
+
+            saveData();
+            updateWeightDisplay();
+            
+            document.getElementById('setupSection').style.display = 'none';
+            document.getElementById('trackingSection').style.display = 'block';
+        }
+
+        function updateWeight() {
+            const current = parseFloat(document.getElementById('currentInput').value);
+
+            if (!current) {
+                alert('Lütfen mevcut kilonuzu girin');
+                return;
+            }
+
+            if (current <= 0) {
+                alert('Lütfen geçerli bir değer girin');
+                return;
+            }
+
+            data.currentWeight = current;
+            data.lastWeek = getWeekNumber();
+
+            saveData();
+            updateWeightDisplay();
+            
+            document.getElementById('currentInput').value = '';
+        }
+
+        function resetWeight() {
+            if (!confirm('Tüm veriler silinecek. Emin misiniz?')) {
+                return;
+            }
+
+            data.currentWeight = null;
+            data.targetWeight = null;
+            data.height = null;
+            data.lastWeight = null;
+            data.lastWeek = null;
+
+            saveData();
+            
+            document.getElementById('setupSection').style.display = 'block';
+            document.getElementById('trackingSection').style.display = 'none';
+            
+            document.getElementById('heightInput').value = '';
+            document.getElementById('initialWeightInput').value = '';
+            document.getElementById('initialTargetInput').value = '';
+        }
+
+        function calculateBMI(weight, height) {
+            const heightInMeters = height / 100;
+            return weight / (heightInMeters * heightInMeters);
+        }
+
+        function getBMICategory(bmi) {
+            if (bmi < 18.5) return 'Zayıf';
+            if (bmi < 25) return 'Normal';
+            if (bmi < 30) return 'Fazla Kilolu';
+            return 'Obez';
+        }
+
+        function updateWeightDisplay() {
+            if (data.currentWeight && data.targetWeight && data.height) {
+                document.getElementById('currentWeight').textContent = data.currentWeight.toFixed(1);
+                document.getElementById('targetWeight').textContent = data.targetWeight.toFixed(1);
+                
+                const bmi = calculateBMI(data.currentWeight, data.height);
+                document.getElementById('bmiValue').textContent = bmi.toFixed(1);
+                document.getElementById('bmiCategory').textContent = getBMICategory(bmi);
+                
+                const remaining = data.currentWeight - data.targetWeight;
+                document.getElementById('remaining').textContent = Math.abs(remaining).toFixed(1);
+                
+                if (data.lastWeight && data.lastWeight !== data.currentWeight) {
+                    const change = data.currentWeight - data.lastWeight;
+                    const changeEl = document.getElementById('weeklyChange');
+                    changeEl.textContent = (change > 0 ? '+' : '') + change.toFixed(1);
+                    changeEl.style.color = change <= 0 ? '#4CAF50' : '#FF5252';
+                } else {
+                    document.getElementById('weeklyChange').textContent = '0.0';
+                }
+            }
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('fitnessData');
+            if (saved) {
+                Object.assign(data, JSON.parse(saved));
+                checkWeekReset();
+                updateExerciseStates();
+                
+                if (data.height && data.targetWeight) {
+                    document.getElementById('setupSection').style.display = 'none';
+                    document.getElementById('trackingSection').style.display = 'block';
+                    updateWeightDisplay();
+                } else {
+                    document.getElementById('setupSection').style.display = 'block';
+                    document.getElementById('trackingSection').style.display = 'none';
+                }
+            } else {
+                document.getElementById('setupSection').style.display = 'block';
+                document.getElementById('trackingSection').style.display = 'none';
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('fitnessData', JSON.stringify(data));
+        }
+
+        function getWeekNumber() {
+            const now = new Date();
+            const start = new Date(now.getFullYear(), 0, 1);
+            const diff = now - start;
+            const oneWeek = 604800000;
+            return Math.ceil(diff / oneWeek);
+        }
+
+        function checkWeekReset() {
+            const currentWeek = getWeekNumber();
+            if (data.lastWeek && data.lastWeek !== currentWeek) {
+                data.lastWeight = data.currentWeight;
+                data.lastWeek = currentWeek;
+                data.exercises = {};
+                saveData();
+                updateExerciseStates();
+            } else if (!data.lastWeek) {
+                data.lastWeek = currentWeek;
+                saveData();
+            }
+        }
+
+        function toggleExercise(checkbox) {
+            const item = checkbox.closest('.exercise-item');
+            const exerciseId = item.getAttribute('data-exercise');
+            
+            if (checkbox.checked) {
+                item.classList.add('completed');
+                data.exercises[exerciseId] = true;
+            } else {
+                item.classList.remove('completed');
+                delete data.exercises[exerciseId];
+            }
+            
+            saveData();
+        }
+
+        function updateExerciseStates() {
+            document.querySelectorAll('.exercise-item').forEach(item => {
+                const exerciseId = item.getAttribute('data-exercise');
+                const checkbox = item.querySelector('.exercise-checkbox');
+                
+                if (data.exercises && data.exercises[exerciseId]) {
+                    checkbox.checked = true;
+                    item.classList.add('completed');
+                } else {
+                    checkbox.checked = false;
+                    item.classList.remove('completed');
+                }
+            });
+        }
+
+        function saveWeight() {
+            // Bu fonksiyon artık kullanılmıyor, updateWeight ve setupWeight kullanılıyor
+        }
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            document.getElementById(pageId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        loadData();
+    </script>
+</body>
+</html>
